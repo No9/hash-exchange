@@ -1,0 +1,39 @@
+{
+  "name": "hash-exchange",
+  "version": "1.0.0",
+  "description": "trade hashes to replicate data with a remote endpoint",
+  "main": "index.js",
+  "dependencies": {
+    "has": "^1.0.0",
+    "inherits": "^2.0.1",
+    "isarray": "~0.0.1",
+    "multiplex": "^3.0.0",
+    "readable-stream": "^1.1.13",
+    "split": "~0.3.0",
+    "through2": "^1.1.1"
+  },
+  "devDependencies": {
+    "tape": "^3.0.0",
+    "shasum": "^1.0.0",
+    "concat-stream": "^1.4.6"
+  },
+  "scripts": {
+    "test": "tape test/*.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/substack/hash-exchange.git"
+  },
+  "homepage": "https://github.com/substack/hash-exchange",
+  "keywords": [
+    "replication",
+    "hash",
+    "content-addressable"
+  ],
+  "author": {
+    "name": "James Halliday",
+    "email": "mail@substack.net",
+    "url": "http://substack.net"
+  },
+  "license": "MIT"
+}

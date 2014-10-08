@@ -1,6 +1,6 @@
 # hash-exchange
 
-trade hashes to figure out what content you need to send to the other side
+trade hashes to replicate data with a remote endpoint
 
 Trading hashes is very useful for replication on top of a content-addressable
 store where nodes have highly variable levels of information. This would be the
