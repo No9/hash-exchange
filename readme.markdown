@@ -2,6 +2,8 @@
 
 trade hashes to replicate data with a remote endpoint
 
+[![build status](https://secure.travis-ci.org/substack/hash-exchange.png)](http://travis-ci.org/substack/hash-exchange)
+
 Trading hashes is very useful for replication on top of a content-addressable
 store where nodes have highly variable levels of information. This would be the
 case for a gossip network.
