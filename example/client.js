@@ -1,5 +1,5 @@
-var net = require('net');
 var exchange = require('../');
+var net = require('net');
 var Readable = require('readable-stream').Readable;
 var concat = require('concat-stream');
 var shasum = require('shasum');
