@@ -1,10 +1,15 @@
 var net = require('net');
 var exchange = require('../');
 var data = require('./client_data.js');
+var Readable = require('readable-stream').Readable;
 var concat = require('concat-stream');
 
 var ex = exchange(function (hash) {
-    return data[hash];
+    var r = new Readable;
+    r._read = function () {};
+    r.push(data[hash]);
+    r.push(null);
+    return r;
 });
 ex.provide(Object.keys(data));
 
