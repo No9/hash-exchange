@@ -1,8 +1,12 @@
 var net = require('net');
 var exchange = require('../');
-var data = require('./client_data.js');
 var Readable = require('readable-stream').Readable;
 var concat = require('concat-stream');
+var shasum = require('shasum');
+
+var messages = [ 'hey yo', 'WHATEVER', 'beep' ];
+var data = {};
+messages.forEach(function (msg) { data[shasum(msg)] = msg });
 
 var ex = exchange(function (hash) {
     var r = new Readable;
