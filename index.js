@@ -94,7 +94,11 @@ Rep.prototype._handleRPC = function () {
             });
         }
         else if (row[0] === codes.available) {
-            self.emit('available', isarray(row[1]) ? row[1] : [ row[1] ]);
+            var hashes = isarray(row[1]) ? row[1] : [ row[1] ];
+            var hs = hashes.filter(function (h) {
+                return !has(self._provided, h);
+            });
+            self.emit('available', hs);
         }
         else if (row[0] === codes.hashes) {
             Object.keys(row[1] || {}).forEach(function (hash) {
@@ -120,10 +124,10 @@ Rep.prototype.provide = function (hashes) {
 
 Rep.prototype.request = function (hashes) {
     var self = this;
-    var cmd = [ codes.request, hashes ];
     if (!isarray(hashes)) hashes = [ hashes ];
     hashes.forEach(function (h) {
         self._requested[h] = true;
     });
+    var cmd = [ codes.request, hashes ];
     this._rpc.write(JSON.stringify(cmd) + '\n');
 };
