@@ -4,6 +4,7 @@
   "description": "trade hashes to replicate data with a remote endpoint",
   "main": "index.js",
   "dependencies": {
+    "defined": "0.0.0",
     "has": "^1.0.0",
     "inherits": "^2.0.1",
     "isarray": "~0.0.1",

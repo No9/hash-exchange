@@ -17,9 +17,9 @@ messages.b.forEach(function (msg) {
 });
 
 test('meta', function (t) {
-    t.plan(6);
+    t.plan(8);
     
-    var a = exchange({ id: 'A' }, function (hash) {
+    var a = exchange({ id: 'A', meta: { x: 4 } }, function (hash) {
         var r = new Readable;
         r._read = function () {};
         r.push(data.a[hash]);
@@ -27,8 +27,9 @@ test('meta', function (t) {
         return r;
     });
     a.provide(Object.keys(data.a));
-    a.on('meta', function (meta) {
-        t.deepEqual(meta, { id: 'B' });
+    a.on('handshake', function (id, meta) {
+        t.deepEqual(id, 'B');
+        t.deepEqual(meta, { y: 5 });
     });
     a.on('available', function (hashes) {
         t.deepEqual(hashes, [ shasum('boop') ]);
@@ -40,7 +41,7 @@ test('meta', function (t) {
         }));
     });
     
-    var b = exchange(function (hash) {
+    var b = exchange({ id: 'B', meta: { y: 5 } }, function (hash) {
         var r = new Readable;
         r._read = function () {};
         r.push(data.b[hash]);
@@ -48,8 +49,9 @@ test('meta', function (t) {
         return r;
     });
     b.provide(Object.keys(data.b));
-    b.on('meta', function (meta) {
-        t.deepEqual(meta, { id: 'A' });
+    b.on('handshake', function (id, meta) {
+        t.deepEqual(id, 'A');
+        t.deepEqual(meta, { x: 4 });
     });
     b.on('available', function (hashes) {
         t.deepEqual(hashes, [ shasum('WHATEVER') ]);

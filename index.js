@@ -5,16 +5,23 @@ var through = require('through2');
 var split = require('split');
 var isarray = require('isarray');
 var has = require('has');
+var defined = require('defined');
 
 module.exports = Rep;
 inherits(Rep, Duplex);
 
 var codes = { handshake: 0, available: 1, request: 2, hashes: 3 };
 
-function Rep (fn) {
+function Rep (opts, fn) {
     var self = this;
-    if (!(this instanceof Rep)) return new Rep(fn);
+    if (!(this instanceof Rep)) return new Rep(opts, fn);
     Duplex.call(this);
+    if (typeof opts === 'function') {
+        fn = opts;
+        opts = {};
+    }
+    if (!opts) opts = {};
+    
     this._mplex = multiplex(function (stream, id) {
         if (has(self._hashes, id)) {
             self.emit('response', self._hashes[id], stream);
@@ -32,8 +39,13 @@ function Rep (fn) {
     sp.on('error', function () {});
     this._rpc.pipe(sp).pipe(this._handleRPC());
     
-    this._id = Math.floor(Math.random() * Math.pow(16,8)).toString(16);
-    this._rpc.write(JSON.stringify([ codes.handshake, this._id ]) + '\n');
+    this._id = defined(
+        opts.id,
+        Math.floor(Math.random() * Math.pow(16,8)).toString(16)
+    );
+    this._rpc.write(JSON.stringify([
+        codes.handshake, this._id, defined(opts.meta, {})
+    ]) + '\n');
     
     this._provided = {};
     this._requested = {};
@@ -67,8 +79,9 @@ Rep.prototype._handleRPC = function () {
                 self._even = false;
             }
             else {
-                self.push(null);
+                return self.push(null);
             }
+            self.emit('handshake', row[1], row[2]);
         }
         else if (row[0] === codes.request) {
             var hashes = isarray(row[1]) ? row[1] : [ row[1] ];
