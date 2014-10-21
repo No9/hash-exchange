@@ -10,71 +10,22 @@ case for a gossip network.
 
 # example
 
-If you have a server with the content-addressed messages:
-
-``` js
-[ 'beep', 'boop', 'hey yo' ]
-```
+First, some code that takes messages on argv, hashes them, then provides those
+hashes using hash-exchange:
 
 ``` js
 var exchange = require('hash-exchange');
-var net = require('net');
-var Readable = require('readable-stream').Readable;
+var through = require('through2');
 var concat = require('concat-stream');
 var shasum = require('shasum');
 
-var messages = [ 'beep', 'boop', 'hey yo' ];
-var data = {};
-messages.forEach(function (msg) { data[shasum(msg)] = msg });
-
-net.createServer(function (stream) {
-    var ex = exchange(function (hash) {
-        var r = new Readable;
-        r._read = function () {};
-        r.push(data[hash]);
-        r.push(null);
-        return r;
-    });
-    ex.provide(Object.keys(data));
-    
-    ex.on('available', function (hashes) {
-        ex.request(hashes);
-    });
-    
-    ex.on('response', function (hash, stream) {
-        stream.pipe(concat(function (body) {
-            console.log('# BEGIN ' + hash);
-            console.log(body.toString('utf8'));
-            console.log('# END ' + hash);
-        }));
-    });
-    
-    stream.pipe(ex).pipe(stream);
-}).listen(5000);
-```
-
-and a client with the content-addressed messages:
-
-``` js
-[ 'hey yo', 'WHATEVER', 'beep' ]
-```
-
-``` js
-var exchange = require('hash-exchange');
-var net = require('net');
-var Readable = require('readable-stream').Readable;
-var concat = require('concat-stream');
-var shasum = require('shasum');
-
-var messages = [ 'hey yo', 'WHATEVER', 'beep' ];
+var messages = process.argv.slice(2);
 var data = {};
 messages.forEach(function (msg) { data[shasum(msg)] = msg });
 
 var ex = exchange(function (hash) {
-    var r = new Readable;
-    r._read = function () {};
-    r.push(data[hash]);
-    r.push(null);
+    var r = through();
+    r.end(data[hash]);
     return r;
 });
 ex.provide(Object.keys(data));
@@ -85,28 +36,34 @@ ex.on('available', function (hashes) {
 
 ex.on('response', function (hash, stream) {
     stream.pipe(concat(function (body) {
-        console.log('# BEGIN ' + hash);
-        console.log(body.toString('utf8'));
-        console.log('# END ' + hash);
+        console.error('# BEGIN ' + hash);
+        console.error(body.toString('utf8'));
+        console.error('# END ' + hash);
     }));
 });
-ex.pipe(net.connect(5000)).pipe(ex);
+process.stdin.pipe(ex).pipe(process.stdout);
 ```
 
-Then the client and server can exchange hashes in order to compute the messages
-each node doesn't have yet.
+Now we can run two instances of this program, one with:
 
-For the server, this is the message `'WHATEVER'`:
+``` js
+[ 'beep', 'boop', 'hey yo' ]
+```
+
+and the other with
+
+``` js
+[ 'hey yo', 'WHATEVER', 'beep' ]
+```
+
+After wiring up the stdin and stdout, the programs provide each other with the
+data they don't individually have:
 
 ```
+$ dupsh 'node ex.js beep boop "hey yo"' 'node ex.js "hey yo" WHATEVER beep'
 # BEGIN fdb608cccac07c273ab532bb41eea07e2ddccf4e
 WHATEVER
 # END fdb608cccac07c273ab532bb41eea07e2ddccf4e
-```
-
-and the client gets the message `'boop'`:
-
-```
 # BEGIN ae8d904cebfd629cdb1cc773a5bce8aca1dc1eee
 boop
 # END ae8d904cebfd629cdb1cc773a5bce8aca1dc1eee

@@ -114,10 +114,17 @@ Rep.prototype._handleRPC = function () {
 
 Rep.prototype.provide = function (hashes) {
     var self = this;
-    if (!isarray(hashes)) hashes = [ hashes ];
-    hashes.forEach(function (h) {
-        self._provided[h] = true;
-    });
+    if (!isarray(hashes) && hashes && typeof hashes === 'object') {
+        Object.keys(hashes).forEach(function (key) {
+            self._provided[key] = hashes[key];
+        });
+    }
+    else {
+        if (!isarray(hashes)) hashes = [ hashes ];
+        hashes.forEach(function (h) {
+            self._provided[h] = true;
+        });
+    }
     var cmd = [ codes.available, hashes ];
     this._rpc.write(JSON.stringify(cmd) + '\n');
 };
