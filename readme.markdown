@@ -79,6 +79,8 @@ var exchange = require('hash-exchange')
 
 Create a hash exchange instance `ex` from `fn(hash)`, a function that takes a
 hash as an argument and should return a readable stream of data for `hash`.
+The stream returned by `fn(hash)` can have a `meta` property that will be
+available to the remote `'response'` event.
 
 `ex` is a duplex stream. You should pipe it to and from another hash exchange
 instance, perhaps over a network link.
@@ -113,10 +115,11 @@ the `'since'` event on the remote side..
 As soon as the connection is established, both sides send a handshake with their
 `id` and `meta` data. This event fires with the data from the remote instance.
 
-## ex.on('response', function (hash, stream) {})
+## ex.on('response', function (hash, stream, meta) {})
 
 When a requested hash has been sent from the other end, this event fires with
-the `hash` and a readable `stream` with the contents.
+the `hash`, a readable `stream` with the contents, and the `meta` property of
+the remote stream.
 
 ## ex.on('available', function (hashes) {})
 
