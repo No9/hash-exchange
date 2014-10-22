@@ -17,13 +17,14 @@ messages.b.forEach(function (msg) {
 });
 
 test('since', function (t) {
-    t.plan(6);
+    t.plan(8);
     
     var a = exchange(function (hash) {
         var r = new Readable;
         r._read = function () {};
         r.push(data.a[hash]);
         r.push(null);
+        r.meta = { zzz: 789 };
         return r;
     });
     a.on('since', function (seq) {
@@ -35,6 +36,7 @@ test('since', function (t) {
         a.request(hashes);
     });
     a.on('response', function (hash, stream) {
+        t.deepEqual(stream.meta, { xyz: 345 });
         stream.pipe(concat(function (body) {
             t.equal(body.toString('utf8'), data.b[hash]);
         }));
@@ -46,6 +48,7 @@ test('since', function (t) {
         r._read = function () {};
         r.push(data.b[hash]);
         r.push(null);
+        r.meta = { xyz: 345 };
         return r;
     });
     b.on('since', function (seq) {
@@ -57,6 +60,7 @@ test('since', function (t) {
         b.request(hashes);
     });
     b.on('response', function (hash, stream) {
+        t.deepEqual(stream.meta, { zzz: 789 });
         stream.pipe(concat(function (body) {
             t.equal(body.toString('utf8'), data.a[hash]);
         }));
