@@ -35,8 +35,8 @@ test('since', function (t) {
         t.deepEqual(hashes, [ shasum('hey yo') ]);
         a.request(hashes);
     });
-    a.on('response', function (hash, stream) {
-        t.deepEqual(stream.meta, { xyz: 345 });
+    a.on('response', function (hash, stream, meta) {
+        t.deepEqual(meta, { xyz: 345 });
         stream.pipe(concat(function (body) {
             t.equal(body.toString('utf8'), data.b[hash]);
         }));
@@ -59,8 +59,8 @@ test('since', function (t) {
         t.deepEqual(hashes, [ shasum('zoom') ]);
         b.request(hashes);
     });
-    b.on('response', function (hash, stream) {
-        t.deepEqual(stream.meta, { zzz: 789 });
+    b.on('response', function (hash, stream, meta) {
+        t.deepEqual(meta, { zzz: 789 });
         stream.pipe(concat(function (body) {
             t.equal(body.toString('utf8'), data.a[hash]);
         }));

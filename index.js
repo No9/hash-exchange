@@ -24,7 +24,8 @@ function Rep (opts, fn) {
     
     this._mplex = multiplex(function (stream, id) {
         if (has(self._hashes, id)) {
-            self.emit('response', self._hashes[id], stream);
+            var r = self._hashes[id];
+            if (r) self.emit('response', r.hash, stream, r.meta);
         }
     });
     this._mplex.on('readable', function () {
@@ -94,7 +95,7 @@ Rep.prototype._handleRPC = function () {
                 
                 var ix = self._index ++ * 2 + (self._even ? 1 : 2);
                 rs[h] = { stream: r, index: ix };
-                hs[h] = ix;
+                hs[h] = { index: ix, meta: defined(r.meta, {}) };
             });
             
             var cmd = [ codes.hashes, hs ];
@@ -116,8 +117,10 @@ Rep.prototype._handleRPC = function () {
         else if (row[0] === codes.hashes) {
             Object.keys(row[1] || {}).forEach(function (hash) {
                 if (has(self._requested, hash)) {
-                    var index = row[1][hash];
-                    self._hashes[index] = hash;
+                    var r = row[1][hash];
+                    if (!r) return;
+                    var index = r.index;
+                    self._hashes[index] = { hash: hash, meta: r.meta };
                 }
             });
         }
