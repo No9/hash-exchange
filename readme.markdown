@@ -23,10 +23,10 @@ var messages = process.argv.slice(2);
 var data = {};
 messages.forEach(function (msg) { data[shasum(msg)] = msg });
 
-var ex = exchange(function (hash) {
+var ex = exchange(function (hash, cb) {
     var r = through();
     r.end(data[hash]);
-    return r;
+    cb(null, r);
 });
 ex.provide(Object.keys(data));
 
@@ -77,10 +77,9 @@ var exchange = require('hash-exchange')
 
 ## var ex = exchange(opts={}, fn)
 
-Create a hash exchange instance `ex` from `fn(hash)`, a function that takes a
-hash as an argument and should return a readable stream of data for `hash`.
-The stream returned by `fn(hash)` can have a `meta` property that will be
-available to the remote `'response'` event.
+Create a hash exchange instance `ex` from `fn(hash, cb)`, a function that takes a
+hash as an argument and should call `cb(err, stream, meta)` with a readable
+`stream` of data for `hash` optionally including some `meta` data.
 
 `ex` is a duplex stream. You should pipe it to and from another hash exchange
 instance, perhaps over a network link.
@@ -118,8 +117,8 @@ As soon as the connection is established, both sides send a handshake with their
 ## ex.on('response', function (hash, stream, meta) {})
 
 When a requested hash has been sent from the other end, this event fires with
-the `hash`, a readable `stream` with the contents, and the `meta` property of
-the remote stream.
+the `hash`, a readable `stream` with the contents, and the associated `meta`
+data.
 
 ## ex.on('available', function (hashes) {})
 

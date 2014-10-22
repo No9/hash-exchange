@@ -7,10 +7,10 @@ var messages = process.argv.slice(2);
 var data = {};
 messages.forEach(function (msg) { data[shasum(msg)] = msg });
 
-var ex = exchange(function (hash) {
+var ex = exchange(function (hash, cb) {
     var r = through();
     r.end(data[hash]);
-    return r;
+    cb(null, r);
 });
 ex.provide(Object.keys(data));
 
