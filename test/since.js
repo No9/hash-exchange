@@ -31,7 +31,7 @@ test('since', function (t) {
         a.provide(Object.keys(data.a).slice(seq));
     });
     a.on('available', function (hashes) {
-        t.deepEqual(hashes, [ shasum('boop'), shasum('hey yo') ]);
+        t.deepEqual(hashes, [ shasum('hey yo') ]);
         a.request(hashes);
     });
     a.on('response', function (hash, stream) {

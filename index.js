@@ -10,7 +10,7 @@ var defined = require('defined');
 module.exports = Rep;
 inherits(Rep, Duplex);
 
-var codes = { handshake: 0, available: 1, request: 2, hashes: 3 };
+var codes = { handshake: 0, available: 1, request: 2, hashes: 3, since: 4 };
 
 function Rep (opts, fn) {
     var self = this;
@@ -121,8 +121,16 @@ Rep.prototype._handleRPC = function () {
                 }
             });
         }
+        else if (row[0] === codes.since) {
+            self.emit('since', row[1]);
+        }
         next();
     });
+};
+
+Rep.prototype.since = function (seq) {
+    var cmd = [ codes.since, seq ];
+    this._rpc.write(JSON.stringify(cmd) + '\n');
 };
 
 Rep.prototype.provide = function (hashes) {
