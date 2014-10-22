@@ -19,12 +19,12 @@ messages.b.forEach(function (msg) {
 test('exchange', function (t) {
     t.plan(4);
     
-    var a = exchange(function (hash) {
+    var a = exchange(function (hash, cb) {
         var r = new Readable;
         r._read = function () {};
         r.push(data.a[hash]);
         r.push(null);
-        return r;
+        cb(null, r);
     });
     a.provide(Object.keys(data.a));
     a.on('available', function (hashes) {
@@ -37,12 +37,12 @@ test('exchange', function (t) {
         }));
     });
     
-    var b = exchange(function (hash) {
+    var b = exchange(function (hash, cb) {
         var r = new Readable;
         r._read = function () {};
         r.push(data.b[hash]);
         r.push(null);
-        return r;
+        cb(null, r);
     });
     b.provide(Object.keys(data.b));
     b.on('available', function (hashes) {

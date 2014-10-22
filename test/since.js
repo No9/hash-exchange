@@ -19,13 +19,12 @@ messages.b.forEach(function (msg) {
 test('since', function (t) {
     t.plan(8);
     
-    var a = exchange(function (hash) {
+    var a = exchange(function (hash, cb) {
         var r = new Readable;
         r._read = function () {};
         r.push(data.a[hash]);
         r.push(null);
-        r.meta = { zzz: 789 };
-        return r;
+        cb(null, r, { zzz: 789 });
     });
     a.on('since', function (seq) {
         t.equal(seq, 2);
@@ -43,13 +42,12 @@ test('since', function (t) {
     });
     a.since(1);
     
-    var b = exchange(function (hash) {
+    var b = exchange(function (hash, cb) {
         var r = new Readable;
         r._read = function () {};
         r.push(data.b[hash]);
         r.push(null);
-        r.meta = { xyz: 345 };
-        return r;
+        cb(null, r, { xyz: 345 });
     });
     b.on('since', function (seq) {
         t.equal(seq, 1);

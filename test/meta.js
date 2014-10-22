@@ -19,12 +19,12 @@ messages.b.forEach(function (msg) {
 test('meta', function (t) {
     t.plan(8);
     
-    var a = exchange({ id: 'A', meta: { x: 4 } }, function (hash) {
+    var a = exchange({ id: 'A', meta: { x: 4 } }, function (hash, cb) {
         var r = new Readable;
         r._read = function () {};
         r.push(data.a[hash]);
         r.push(null);
-        return r;
+        cb(null, r);
     });
     a.provide(Object.keys(data.a));
     a.on('handshake', function (id, meta) {
@@ -41,12 +41,12 @@ test('meta', function (t) {
         }));
     });
     
-    var b = exchange({ id: 'B', meta: { y: 5 } }, function (hash) {
+    var b = exchange({ id: 'B', meta: { y: 5 } }, function (hash, cb) {
         var r = new Readable;
         r._read = function () {};
         r.push(data.b[hash]);
         r.push(null);
-        return r;
+        cb(null, r);
     });
     b.provide(Object.keys(data.b));
     b.on('handshake', function (id, meta) {

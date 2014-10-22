@@ -87,25 +87,33 @@ Rep.prototype._handleRPC = function () {
         else if (row[0] === codes.request) {
             var hashes = isarray(row[1]) ? row[1] : [ row[1] ];
             var hs = {}, rs = {};
+            var pending = hashes.length;
             
             hashes.forEach(function (h) {
-                if (!has(self._provided, h)) return false;
-                var r = self._loader(h);
-                if (!r) return false;
+                if (!has(self._provided, h)) {
+                    if (-- pending === 0) done();
+                    return false;
+                }
+                self._loader(h, function (err, r, meta) {
+                    if (r) {
+                        var ix = self._index ++ * 2 + (self._even ? 1 : 2);
+                        rs[h] = { stream: r, index: ix };
+                        hs[h] = { index: ix, meta: defined(meta, {}) };
+                    }
+                    if (-- pending === 0) done();
+                });
+            });
+            
+            function done () {
+                var cmd = [ codes.hashes, hs ];
+                self._rpc.write(JSON.stringify(cmd) + '\n');
                 
-                var ix = self._index ++ * 2 + (self._even ? 1 : 2);
-                rs[h] = { stream: r, index: ix };
-                hs[h] = { index: ix, meta: defined(r.meta, {}) };
-            });
-            
-            var cmd = [ codes.hashes, hs ];
-            self._rpc.write(JSON.stringify(cmd) + '\n');
-            
-            Object.keys(rs).forEach(function (hash) {
-                var r = rs[hash].stream, index = rs[hash].index;
-                var stream = self._mplex.createStream(index);
-                r.pipe(stream);
-            });
+                Object.keys(rs).forEach(function (hash) {
+                    var r = rs[hash].stream, index = rs[hash].index;
+                    var stream = self._mplex.createStream(index);
+                    r.pipe(stream);
+                });
+            }
         }
         else if (row[0] === codes.available) {
             var hashes = isarray(row[1]) ? row[1] : [ row[1] ];
