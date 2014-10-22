@@ -99,6 +99,13 @@ Tell the remote endpoint about an array of `hashes`.
 
 Ask the remote endpoint to read the content of an array of `hashes`.
 
+## ex.since(seq)
+
+Inform the other side of the connection to only serve hashes since `seq` through
+the `'since'` event on the remote side..
+
+`seq` can be any value that serializes with `JSON.stringify()`.
+
 # events
 
 ## ex.on('handshake', function (id, meta) {})
@@ -115,6 +122,11 @@ the `hash` and a readable `stream` with the contents.
 
 After the other end of the connection has provided some hashes, this event fires
 with the array of remote hashes not already provided locally.
+
+## ex.on('since', function (seq) {})
+
+When the remote instance calls `.since(seq)`, this event fires with the sequence
+`seq` that was called.
 
 # install
 
