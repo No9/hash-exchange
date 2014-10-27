@@ -107,6 +107,12 @@ the `'since'` event on the remote side..
 
 `seq` can be any value that serializes with `JSON.stringify()`.
 
+## ex.close()
+
+When the local exchange is done and doesn't need any more data, call this
+function to inform the remote side. When both sides have called `.close()`, the
+connection will terminate.
+
 # events
 
 ## ex.on('handshake', function (id, meta) {})
@@ -129,6 +135,11 @@ with the array of remote hashes not already provided locally.
 
 When the remote instance calls `.since(seq)`, this event fires with the sequence
 `seq` that was called.
+
+## ex.on('close', function () {})
+
+This event fires when both sides of the connection have called `.close()` and
+each side doesn't need any more data.
 
 # install
 
