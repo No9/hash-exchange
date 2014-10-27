@@ -10,7 +10,10 @@ var defined = require('defined');
 module.exports = Rep;
 inherits(Rep, Duplex);
 
-var codes = { handshake: 0, available: 1, request: 2, hashes: 3, since: 4 };
+var codes = {
+    handshake: 0, available: 1, request: 2,
+    hashes: 3, since: 4, close: 5
+};
 
 function Rep (opts, fn) {
     var self = this;
@@ -53,6 +56,7 @@ function Rep (opts, fn) {
     this._hashes = {};
     this._index = 0;
     this._loader = fn;
+    this._closed = { local: false, remote: false };
 }
 
 Rep.prototype._read = function () {
@@ -135,6 +139,14 @@ Rep.prototype._handleRPC = function () {
         else if (row[0] === codes.since) {
             self.emit('since', row[1]);
         }
+        else if (row[0] === codes.close) {
+            self._closed.remote = true;
+            if (self._closed.local) {
+                self.emit('close');
+                self.push(null);
+                return;
+            }
+        }
         next();
     });
 };
@@ -169,4 +181,13 @@ Rep.prototype.request = function (hashes) {
     });
     var cmd = [ codes.request, hashes ];
     this._rpc.write(JSON.stringify(cmd) + '\n');
+};
+
+Rep.prototype.close = function () {
+    this._rpc.write(JSON.stringify([ codes.close ]) + '\n');
+    this._closed.local = true;
+    if (this._closed.remote) {
+        this.emit('close');
+        this.push(null);
+    }
 };
