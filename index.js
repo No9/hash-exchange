@@ -60,6 +60,8 @@ function Rep (opts, fn) {
 }
 
 Rep.prototype._read = function () {
+    if (this._closed.remote && this._closed.local) return;
+    
     var buf, times = 0;
     while ((buf = this._mplex.read()) !== null) {
         this.push(buf);
