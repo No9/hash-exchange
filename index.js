@@ -20,13 +20,14 @@ function Rep (fn) {
     Duplex.call(this);
     
     this._mplex = multiplex({}, function (stream, ch) {
-        if (ch === '0') {
+        var seq = parseInt(ch, 16);
+        if (seq === 0) {
             stream.pipe(self._handleRPC());
         }
-        else if (has(self._hashes, ch)) {
-            var hash = self._hashes[ch];
-            delete self._hashes[ch];
-            self.emit('response', hash, stream);
+        else if (has(self._hashes, seq)) {
+            var hash = self._hashes[seq];
+            delete self._hashes[seq];
+            self.emit('response', hash, stream, seq);
         }
         else self.destroy();
     });
@@ -42,7 +43,7 @@ function Rep (fn) {
     this._requested = {};
     this._hashes = {};
     this._index = 0;
-    this._loader = fn;
+    this._createReadStream = fn;
     this._closed = { local: false, remote: false };
 }
 
@@ -83,8 +84,8 @@ Rep.prototype._handleRPC = function () {
         else if (msg.type === TYPE.HASHES) {
             msg.mapping.forEach(function (m) {
                 if (!has(self._requested, m.hash)) return self.destroy();
-                if (has(self._hashes, m.index)) return self.destroy();
-                self._hashes[m.index] = m.hash;
+                if (has(self._hashes, m.sequence)) return self.destroy();
+                self._hashes[m.sequence] = m.hash;
             });
             next();
         }
@@ -118,11 +119,11 @@ Rep.prototype._handleRequest = function (hashes, next) {
             if (-- pending === 0) done();
             return false;
         }
-        self._loader(h, function (err, r) {
+        self._createReadStream(h, function (err, r, seq) {
             if (r) {
-                var ix = ++ self._index;
-                rs[h] = { stream: r, index: ix };
-                hs.push({ hash: h, index: ix });
+                if (seq === undefined) seq = ++ self._index;
+                rs[h] = { stream: r, sequence: seq };
+                hs.push({ hash: h, sequence: seq });
             }
             if (-- pending === 0) done();
         });
@@ -135,8 +136,8 @@ Rep.prototype._handleRequest = function (hashes, next) {
         }));
         
         Object.keys(rs).forEach(function (hash) {
-            var r = rs[hash].stream, index = rs[hash].index;
-            var stream = self._mplex.createStream(index.toString(16));
+            var r = rs[hash].stream, seq = rs[hash].sequence;
+            var stream = self._mplex.createStream(seq.toString(16));
             r.pipe(stream);
         });
         next();

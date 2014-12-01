@@ -29,7 +29,7 @@ test('since', function (t) {
         r._read = function () {};
         r.push(data.a[hash]);
         r.push(null);
-        cb(null, r, { zzz: 789 });
+        cb(null, r);
     });
     a.on('since', function (seq) {
         t.equal(seq, 2, 'A received sequence');
@@ -51,7 +51,7 @@ test('since', function (t) {
         r._read = function () {};
         r.push(data.b[hash]);
         r.push(null);
-        cb(null, r, { xyz: 345 });
+        cb(null, r);
     });
     b.on('since', function (seq) {
         t.equal(seq, 1, 'B received sequence');

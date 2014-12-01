@@ -15,5 +15,5 @@ message RPC {
 
 message Map {
   required string hash = 0;
-  required uint32 index = 1;
+  required uint32 sequence = 1;
 }
