@@ -75,11 +75,12 @@ boop
 var exchange = require('hash-exchange')
 ```
 
-## var ex = exchange(fn)
+## var ex = exchange(createReadStream)
 
-Create a hash exchange instance `ex` from `fn(hash, cb)`, a function that takes a
-hash as an argument and should call `cb(err, stream)` with a readable
-`stream` of data for `hash`.
+Create a hash exchange instance `ex` from `createReadStream(hash, cb)`, a
+function that takes a hash as an argument and should call `cb(err, stream, seq)`
+with a readable `stream` of data for `hash`. Optionally the read stream can
+indicate a sequence integer `seq`.
 
 `ex` is a duplex stream. You should pipe it to and from another hash exchange
 instance, perhaps over a network link.
