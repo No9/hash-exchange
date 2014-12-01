@@ -95,12 +95,24 @@ Tell the remote endpoint about an array of `hashes`.
 
 Ask the remote endpoint to read the content of an array of `hashes`.
 
+## ex.id(id)
+
+Inform the other side of the connection with a unique identifier string `id`.
+The `'id'` event fires on the remote side.
+
 ## ex.since(seq)
 
 Inform the other side of the connection to only serve hashes since `seq` through
-the `'since'` event on the remote side..
+the `'since'` event on the remote side.
 
-`seq` can be any value that serializes with `JSON.stringify()`.
+`seq` must be an integer `>= -1`
+
+## ex.seen(seq)
+
+Inform the other side that `seq` was successfully received through the `'seen'`
+event on the remote side.
+
+`seq` must be an integer `>= -1`
 
 ## ex.close()
 
@@ -120,9 +132,19 @@ the `hash`, a readable `stream` of the remote file contents.
 After the other end of the connection has provided some hashes, this event fires
 with the array of remote hashes not already provided locally.
 
+## ex.on('id', function (id) {})
+
+When the remote instance calls `.id(id)`, this event fires with the identifier
+`id` that was called.
+
 ## ex.on('since', function (seq) {})
 
 When the remote instance calls `.since(seq)`, this event fires with the sequence
+`seq` that was called.
+
+## ex.on('seen', function (seq) {})
+
+When the remote instance calls `.seen(seq)`, this event fires with the sequence
 `seq` that was called.
 
 ## ex.on('close', function () {})
