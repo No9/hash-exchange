@@ -96,9 +96,11 @@ Rep.prototype._handleRPC = function () {
         }
         else if (msg.type === TYPE.SEEN) {
             self.emit('seen', msg.sequence - 1);
+            next();
         }
         else if (msg.type === TYPE.ID) {
             self.emit('id', msg.hashes[0]);
+            next();
         }
         else if (msg.type === TYPE.CLOSE) {
             self._closed.remote = true;
