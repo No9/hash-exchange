@@ -4,6 +4,7 @@
   "description": "trade hashes to replicate data with a remote endpoint",
   "main": "index.js",
   "dependencies": {
+    "brfs": "^1.2.0",
     "has": "^1.0.0",
     "inherits": "^2.0.1",
     "isarray": "~0.0.1",
@@ -19,6 +20,11 @@
   },
   "scripts": {
     "test": "tape test/*.js"
+  },
+  "browserify": {
+    "transform": [
+      "brfs"
+    ]
   },
   "repository": {
     "type": "git",
