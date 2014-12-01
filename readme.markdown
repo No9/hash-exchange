@@ -75,22 +75,16 @@ boop
 var exchange = require('hash-exchange')
 ```
 
-## var ex = exchange(opts={}, fn)
+## var ex = exchange(fn)
 
 Create a hash exchange instance `ex` from `fn(hash, cb)`, a function that takes a
-hash as an argument and should call `cb(err, stream, meta)` with a readable
-`stream` of data for `hash` optionally including some `meta` data.
+hash as an argument and should call `cb(err, stream)` with a readable
+`stream` of data for `hash`.
 
 `ex` is a duplex stream. You should pipe it to and from another hash exchange
 instance, perhaps over a network link.
 
 You can optionally provide:
-
-* `opts.id` - a unique name to use for the connection. If the name is the same
-as the remove, the connection will terminate. This name is emitted along with
-`opts.meta` in the `'handshake'` event.
-* `opts.meta` - initial metadata to send down in the initial handshake. This
-data is emitted along with the `opts.id` in the `'handshake'` event.
 
 ## ex.provide(hashes)
 
@@ -115,16 +109,10 @@ connection will terminate.
 
 # events
 
-## ex.on('handshake', function (id, meta) {})
-
-As soon as the connection is established, both sides send a handshake with their
-`id` and `meta` data. This event fires with the data from the remote instance.
-
-## ex.on('response', function (hash, stream, meta) {})
+## ex.on('response', function (hash, stream) {})
 
 When a requested hash has been sent from the other end, this event fires with
-the `hash`, a readable `stream` with the contents, and the associated `meta`
-data.
+the `hash`, a readable `stream` of the remote file contents.
 
 ## ex.on('available', function (hashes) {})
 
