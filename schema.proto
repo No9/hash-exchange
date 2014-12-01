@@ -1,0 +1,12 @@
+enum TYPE {
+  AVAILABLE = 0;
+  REQUEST = 1;
+  HASHES = 2;
+  SINCE = 3;
+  CLOSE = 4;
+}
+
+message RPC {
+  required TYPE type = 0 [default=DATA];
+  repeated string hashes = 1;
+}
