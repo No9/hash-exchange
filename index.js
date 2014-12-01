@@ -92,6 +92,13 @@ Rep.prototype._handleRPC = function () {
             self.emit('since', msg.sequence);
             next();
         }
+        else if (msg.type === TYPE.CLOSE) {
+            self._closed.remote = true;
+            if (self._closed.local) {
+                self.emit('close');
+                self.push(null);
+            }
+        }
         else next();
     });
     
@@ -175,12 +182,12 @@ Rep.prototype.request = function (hashes) {
 };
 
 Rep.prototype.close = function () {
-    /*
-    this._rpc.write(JSON.stringify([ codes.close ]) + '\n');
+    this._rpc.write(RPC.encode({
+        type: TYPE.CLOSE
+    }));
     this._closed.local = true;
     if (this._closed.remote) {
         this.emit('close');
         this.push(null);
     }
-    */
 };
