@@ -4,6 +4,8 @@ enum TYPE {
   HASHES = 2;
   SINCE = 3;
   CLOSE = 4;
+  SEEN = 5;
+  ID = 6;
 }
 
 message RPC {

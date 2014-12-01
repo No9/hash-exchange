@@ -21,13 +21,14 @@ function Rep (fn) {
     
     this._mplex = multiplex({}, function (stream, ch) {
         var seq = parseInt(ch, 16);
+        var hseq = seq - 1;
         if (seq === 0) {
             stream.pipe(self._handleRPC());
         }
-        else if (has(self._hashes, seq)) {
-            var hash = self._hashes[seq];
-            delete self._hashes[seq];
-            self.emit('response', hash, stream, seq);
+        else if (has(self._hashes, hseq)) {
+            var hash = self._hashes[hseq];
+            delete self._hashes[hseq];
+            self.emit('response', hash, stream, hseq);
         }
         else self.destroy();
     });
@@ -90,8 +91,14 @@ Rep.prototype._handleRPC = function () {
             next();
         }
         else if (msg.type === TYPE.SINCE) {
-            self.emit('since', msg.sequence);
+            self.emit('since', msg.sequence - 1);
             next();
+        }
+        else if (msg.type === TYPE.SEEN) {
+            self.emit('seen', msg.sequence - 1);
+        }
+        else if (msg.type === TYPE.ID) {
+            self.emit('id', msg.hashes[0]);
         }
         else if (msg.type === TYPE.CLOSE) {
             self._closed.remote = true;
@@ -137,7 +144,7 @@ Rep.prototype._handleRequest = function (hashes, next) {
         
         Object.keys(rs).forEach(function (hash) {
             var r = rs[hash].stream, seq = rs[hash].sequence;
-            var stream = self._mplex.createStream(seq.toString(16));
+            var stream = self._mplex.createStream((seq+1).toString(16));
             r.pipe(stream);
         });
         next();
@@ -147,7 +154,21 @@ Rep.prototype._handleRequest = function (hashes, next) {
 Rep.prototype.since = function (seq) {
     this._rpc.write(RPC.encode({
         type: TYPE.SINCE,
-        sequence: seq
+        sequence: seq + 1
+    }));
+};
+
+Rep.prototype.seen = function (seq) {
+    this._rpc.write(RPC.encode({
+        type: TYPE.SEEN,
+        sequence: seq + 1
+    }));
+};
+
+Rep.prototype.id = function (id) {
+    this._rpc.write(RPC.encode({
+        type: TYPE.ID,
+        hashes: [ id ]
     }));
 };
 
