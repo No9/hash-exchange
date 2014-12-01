@@ -1,6 +1,6 @@
 {
   "name": "hash-exchange",
-  "version": "2.1.0",
+  "version": "3.0.0",
   "description": "trade hashes to replicate data with a remote endpoint",
   "main": "index.js",
   "dependencies": {
