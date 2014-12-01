@@ -7,6 +7,12 @@ enum TYPE {
 }
 
 message RPC {
-  required TYPE type = 0 [default=DATA];
+  required TYPE type = 0;
   repeated string hashes = 1;
+  repeated Map mapping = 2;
+}
+
+message Map {
+  required string hash = 0;
+  required uint32 index = 1;
 }

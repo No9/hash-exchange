@@ -4,6 +4,8 @@ var Duplex = require('readable-stream').Duplex;
 var protobuf = require('protocol-buffers');
 var fs = require('fs');
 var through = require('through2');
+var isarray = require('isarray');
+var has = require('has');
 
 var messages = protobuf(fs.readFileSync(__dirname + '/schema.proto'));
 var TYPE = messages.TYPE;
@@ -21,9 +23,16 @@ function Rep (fn) {
         if (ch === '0') {
             stream.pipe(self._handleRPC());
         }
+console.error('ch=', ch); 
     });
-    
+    this._mplex.on('readable', function () {
+        if (self._reading) {
+            self._reading = false;
+            self._read();
+        }
+    });
     this._rpc = this._mplex.createStream('0');
+    
     this._provided = {};
     this._requested = {};
     this._hashes = {};
@@ -55,13 +64,59 @@ Rep.prototype._handleRPC = function () {
     var self = this;
     return through.obj(function (buf, enc, next) {
         var msg = decode(buf);
+console.error(msg); 
         if (!msg) return self.destroy();
-        console.error('msg=', msg);
+        if (msg.type === TYPE.AVAILABLE) {
+            self.emit('available', msg.hashes);
+            next();
+        }
+        else if (msg.type === TYPE.REQUEST) {
+            self._handleRequest(msg.hashes, next);
+        }
+        else if (msg.type === TYPE.HASHES) {
+            console.error(msg);
+        }
+        else next();
     });
     
     function decode (buf) {
         try { return RPC.decode(buf) }
         catch (err) { return null }
+    }
+};
+
+Rep.prototype._handleRequest = function (hashes, next) {
+    var self = this;
+    var hs = [], rs = {};
+    var pending = hashes.length;
+    
+    hashes.forEach(function (h) {
+        if (!has(self._provided, h)) {
+            if (-- pending === 0) done();
+            return false;
+        }
+        self._loader(h, function (err, r) {
+            if (r) {
+                var ix = ++ self._index;
+                rs[h] = { stream: r, index: ix };
+                hs.push({ hash: h, index: ix });
+            }
+            if (-- pending === 0) done();
+        });
+    });
+    
+    function done () {
+        self._rpc.write(RPC.encode({
+            type: TYPE.HASHES,
+            mapping: hs
+        }));
+        
+        Object.keys(rs).forEach(function (hash) {
+            var r = rs[hash].stream, index = rs[hash].index;
+            var stream = self._mplex.createStream(String(index));
+            r.pipe(stream);
+        });
+        next();
     }
 };
 
@@ -73,11 +128,6 @@ Rep.prototype.since = function (seq) {
 };
 
 Rep.prototype.provide = function (hashes) {
-    this._rpc.write(RPC.encode({
-        type: TYPE.AVAILABLE,
-        hashes: hashes
-    }));
-    /*
     var self = this;
     if (!isarray(hashes) && hashes && typeof hashes === 'object') {
         Object.keys(hashes).forEach(function (key) {
@@ -90,23 +140,22 @@ Rep.prototype.provide = function (hashes) {
             self._provided[h] = true;
         });
     }
-    var cmd = [ codes.available, hashes ];
-    this._rpc.write(JSON.stringify(cmd) + '\n');
-    */
+    self._rpc.write(RPC.encode({
+        type: TYPE.AVAILABLE,
+        hashes: hashes
+    }));
 };
 
 Rep.prototype.request = function (hashes) {
-    console.error(hashes);
-    
-    /*
     var self = this;
     if (!isarray(hashes)) hashes = [ hashes ];
     hashes.forEach(function (h) {
         self._requested[h] = true;
     });
-    var cmd = [ codes.request, hashes ];
-    this._rpc.write(JSON.stringify(cmd) + '\n');
-    */
+    self._rpc.write(RPC.encode({
+        type: TYPE.REQUEST,
+        hashes: hashes
+    }));
 };
 
 Rep.prototype.close = function () {
