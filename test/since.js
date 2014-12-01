@@ -32,16 +32,16 @@ test('since', function (t) {
         cb(null, r, { zzz: 789 });
     });
     a.on('since', function (seq) {
-        t.equal(seq, 2);
+        t.equal(seq, 2, 'A received sequence');
         a.provide(keys.a.slice(seq));
     });
     a.on('available', function (hashes) {
-        t.deepEqual(hashes, [ shasum('hey yo') ]);
+        t.deepEqual(hashes, [ shasum('hey yo') ], 'A received available');
         a.request(hashes);
     });
     a.on('response', function (hash, stream) {
         stream.pipe(concat(function (body) {
-            t.equal(body.toString('utf8'), data.b[hash]);
+            t.equal(body.toString('utf8'), data.b[hash], 'A response');
         }));
     });
     a.since(1);
@@ -54,16 +54,16 @@ test('since', function (t) {
         cb(null, r, { xyz: 345 });
     });
     b.on('since', function (seq) {
-        t.equal(seq, 1);
+        t.equal(seq, 1, 'B received sequence');
         b.provide(keys.b.slice(seq));
     });
     b.on('available', function (hashes) {
-        t.deepEqual(hashes, [ shasum('zoom') ]);
+        t.deepEqual(hashes, [ shasum('zoom') ], 'B received available');
         b.request(hashes);
     });
     b.on('response', function (hash, stream) {
         stream.pipe(concat(function (body) {
-            t.equal(body.toString('utf8'), data.a[hash]);
+            t.equal(body.toString('utf8'), data.a[hash], 'B response');
         }));
     });
     b.since(2);
