@@ -23,7 +23,12 @@ function Rep (fn) {
         if (ch === '0') {
             stream.pipe(self._handleRPC());
         }
-console.error('ch=', ch); 
+        else if (has(self._hashes, ch)) {
+            var hash = self._hashes[ch];
+            delete self._hashes[ch];
+            self.emit('response', hash, stream);
+        }
+        else self.destroy();
     });
     this._mplex.on('readable', function () {
         if (self._reading) {
@@ -64,7 +69,6 @@ Rep.prototype._handleRPC = function () {
     var self = this;
     return through.obj(function (buf, enc, next) {
         var msg = decode(buf);
-console.error(msg); 
         if (!msg) return self.destroy();
         if (msg.type === TYPE.AVAILABLE) {
             self.emit('available', msg.hashes);
@@ -74,7 +78,12 @@ console.error(msg);
             self._handleRequest(msg.hashes, next);
         }
         else if (msg.type === TYPE.HASHES) {
-            console.error(msg);
+            msg.mapping.forEach(function (m) {
+                if (!has(self._requested, m.hash)) return self.destroy();
+                if (has(self._hashes, m.index)) return self.destroy();
+                self._hashes[m.index] = m.hash;
+            });
+            next();
         }
         else next();
     });
@@ -113,7 +122,7 @@ Rep.prototype._handleRequest = function (hashes, next) {
         
         Object.keys(rs).forEach(function (hash) {
             var r = rs[hash].stream, index = rs[hash].index;
-            var stream = self._mplex.createStream(String(index));
+            var stream = self._mplex.createStream(index.toString(16));
             r.pipe(stream);
         });
         next();
