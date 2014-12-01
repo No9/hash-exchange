@@ -71,7 +71,10 @@ Rep.prototype._handleRPC = function () {
         var msg = decode(buf);
         if (!msg) return self.destroy();
         if (msg.type === TYPE.AVAILABLE) {
-            self.emit('available', msg.hashes);
+            var hs = msg.hashes.filter(function (h) {
+                return !has(self._provided, h);
+            });
+            self.emit('available', hs);
             next();
         }
         else if (msg.type === TYPE.REQUEST) {
