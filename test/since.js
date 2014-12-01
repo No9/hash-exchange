@@ -9,11 +9,16 @@ messages.a = [ 'hey yo', 'WHATEVER', 'beep', 'zoom' ];
 messages.b = [ 'boop', 'beep', 'hey yo' ];
 
 var data = { a: {}, b: {} };
+var keys = { a: [], b: [] };
 messages.a.forEach(function (msg) {
-    data.a[shasum(msg)] = msg;
+    var h = shasum(msg);
+    data.a[h] = msg;
+    keys.a.push(h);
 });
 messages.b.forEach(function (msg) {
-    data.b[shasum(msg)] = msg;
+    var h = shasum(msg);
+    data.b[h] = msg;
+    keys.b.push(h);
 });
 
 test('since', function (t) {
@@ -28,7 +33,7 @@ test('since', function (t) {
     });
     a.on('since', function (seq) {
         t.equal(seq, 2);
-        a.provide(Object.keys(data.a).slice(seq));
+        a.provide(keys.a.slice(seq));
     });
     a.on('available', function (hashes) {
         t.deepEqual(hashes, [ shasum('hey yo') ]);
@@ -50,7 +55,7 @@ test('since', function (t) {
     });
     b.on('since', function (seq) {
         t.equal(seq, 1);
-        b.provide(Object.keys(data.b).slice(seq));
+        b.provide(keys.b.slice(seq));
     });
     b.on('available', function (hashes) {
         t.deepEqual(hashes, [ shasum('zoom') ]);
