@@ -10,6 +10,7 @@ message RPC {
   required TYPE type = 0;
   repeated string hashes = 1;
   repeated Map mapping = 2;
+  optional uint32 sequence = 3;
 }
 
 message Map {

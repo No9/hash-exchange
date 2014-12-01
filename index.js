@@ -88,6 +88,10 @@ Rep.prototype._handleRPC = function () {
             });
             next();
         }
+        else if (msg.type === TYPE.SINCE) {
+            self.emit('since', msg.sequence);
+            next();
+        }
         else next();
     });
     
@@ -133,10 +137,10 @@ Rep.prototype._handleRequest = function (hashes, next) {
 };
 
 Rep.prototype.since = function (seq) {
-    /*
-    var cmd = [ codes.since, seq ];
-    this._rpc.write(JSON.stringify(cmd) + '\n');
-    */
+    this._rpc.write(RPC.encode({
+        type: TYPE.SINCE,
+        sequence: seq
+    }));
 };
 
 Rep.prototype.provide = function (hashes) {
