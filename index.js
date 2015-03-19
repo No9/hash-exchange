@@ -122,6 +122,7 @@ Rep.prototype._handleRequest = function (hashes, next) {
     var self = this;
     var hs = [], rs = {};
     var pending = hashes.length;
+    if (pending === 0) done();
     
     hashes.forEach(function (h) {
         if (!has(self._provided, h)) {
